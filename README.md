@@ -122,8 +122,16 @@ DEPLOYMENT.md                          Deployment and resubmission checklist
 - New v2 Studionet address: `0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A`
 - Explorer: <https://explorer-studio.genlayer.com/address/0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A?tab=contract>
 
-The repository and deployment are bound. Complete the funded smoke test and final
-live reviewer-page verification before resubmitting.
+The repository and deployment are bound. The funded full-consensus test completed
+successfully and the public reviewer page exposes the final proof.
+
+## Live Studionet proof
+
+- Fund transaction: <https://explorer-studio.genlayer.com/tx/0xe3a6cee2b3c21da388c234fd84c0ed06aba9720952ace356f2f478f4e3805862>
+- Evidence transaction: <https://explorer-studio.genlayer.com/tx/0xfcc0dcdde4d43dead8b13a38643dcabe3433817dae9edb6f068e37fe0e4d0030>
+- Consensus: `FINALIZED / MAJORITY_AGREE`
+- Verdict: `PASS`, score `100/100`
+- Settlement: evidence version `1`; `0.01 GEN` released; escrow balance `0`
 
 ## License
 
