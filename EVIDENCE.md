@@ -34,22 +34,33 @@ Frontend tests: 5 passed
 
 ## Canonical artifacts
 
-- Tracked source: <https://github.com/haris4587/proofmint/blob/main/contracts/proofmint.py>
+- Tracked source: <https://github.com/haris4587/proofmint/blob/da7839cb86865db1308e0888d8059649604e0126/contracts/proofmint.py>
+- Raw tracked source: <https://raw.githubusercontent.com/haris4587/proofmint/da7839cb86865db1308e0888d8059649604e0126/contracts/proofmint.py>
 - Repository: <https://github.com/haris4587/proofmint>
 - Live reviewer page: <https://proofmint.ansaf1st33.chatgpt.site/source>
-- Studionet Explorer v2: pending deployment
+- Studionet Explorer v2: <https://explorer-studio.genlayer.com/address/0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A?tab=contract>
 
 ## Deployment binding
 
-The final submission must use the new ProofMint v2 address created from the exact
-tracked `contracts/proofmint.py`. The rejected v1 address
+The ProofMint v2 deployment was created from the exact tracked
+`contracts/proofmint.py` at commit
+`da7839cb86865db1308e0888d8059649604e0126`.
+
+```text
+ProofMint v2 address: 0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A
+Contract source SHA-256: a90e593eb7ee2eabfe5e4102e8584873a214ae31cd28763b35ac3d6fbe6bc3b5
+Contract source byte length: 17452
+```
+
+The rejected v1 address
 `0xAd4Ae92FE7c0eb15E21f29346DE2Bfbaa2dC52F1` is historical and is not valid v2
 evidence.
 
 The deployment record must capture the selected Git commit, this file's raw URL,
 its SHA-256 digest, its exact byte length, and the resulting ProofMint v2 address.
 Those values are recorded externally after the commit is created so this evidence
-file never claims a self-referential commit hash.
+file never claims a self-referential commit hash. The immutable raw URL and
+fingerprint for an adjudication are calculated after this record is committed.
 
 ## Resubmission gate
 
