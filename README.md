@@ -89,8 +89,6 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/genvm-lint check contracts/proofmint.py
 .venv/bin/python -m pytest tests/direct -q
-npm run install:ci
-npm test
 ```
 
 Expected results:
@@ -101,19 +99,17 @@ GenVM validation passed
 Contract: ProofMint
 Methods: 7 (4 view, 3 write)
 7 passed
-Site build passed
-5 frontend tests passed
 ```
 
 ## Project structure
+
+This public repository is intentionally contract-focused. The live reviewer interface is published separately at the Site URL below.
 
 ```text
 contracts/proofmint.py                 Canonical Intelligent Contract
 public/proofmint.py                    Byte-identical direct review copy
 tests/direct/test_proofmint.py         Seven direct tests
 tests/integration/test_studionet_deploy.py  Deployment smoke test
-app/page.tsx                           MetaMask protocol interface
-app/source/page.tsx                    Reviewer evidence page
 EVIDENCE.md                            Verifiable review record
 DEPLOYMENT.md                          Deployment and resubmission checklist
 ```
