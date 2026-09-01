@@ -118,10 +118,12 @@ DEPLOYMENT.md                          Deployment and resubmission checklist
 
 - Site: <https://proofmint.ansaf1st33.chatgpt.site>
 - Repository target: <https://github.com/haris4587/proofmint>
-- New v2 Studionet address: pending wallet deployment
+- Deployment source commit: `da7839cb86865db1308e0888d8059649604e0126`
+- New v2 Studionet address: `0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A`
+- Explorer: <https://explorer-studio.genlayer.com/address/0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A?tab=contract>
 
-Do not resubmit until the repository is public and the new v2 Explorer address is
-linked from the live `/source` page.
+The repository and deployment are bound. Complete the funded smoke test and final
+live reviewer-page verification before resubmitting.
 
 ## License
 
