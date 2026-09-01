@@ -43,6 +43,14 @@ value: 0.01 GEN (or another small Studionet test amount)
 
 Then call `get_milestone_count()` and `get_totals()` to confirm accepted state.
 
+Completed:
+
+```text
+Milestone ID: 0
+Fund transaction: 0xe3a6cee2b3c21da388c234fd84c0ed06aba9720952ace356f2f478f4e3805862
+Funded: 0.01 GEN
+```
+
 ## 4. Run a full evidence adjudication
 
 Use the raw `EVIDENCE.md` URL pinned to the final 40-character Git commit. Compute
@@ -54,6 +62,17 @@ submit_evidence(milestone_id, raw_url, sha256, byte_length)
 
 Wait for the consensus result and confirm the first append-only evidence version
 through `get_evidence_version(milestone_id, 1)`.
+
+Completed:
+
+```text
+Evidence transaction: 0xfcc0dcdde4d43dead8b13a38643dcabe3433817dae9edb6f068e37fe0e4d0030
+Consensus: FINALIZED / MAJORITY_AGREE
+Outcome: PASS
+Score: 100/100
+Evidence version: 1
+Settlement: RELEASED (0.01 GEN)
+```
 
 ## 5. Bind the website to the deployment
 
@@ -74,4 +93,6 @@ Update `lib/proofmint.ts`:
 - funded milestone and evidence forms target the new address;
 - the old address is not presented as v2.
 
-Only then submit the corrected GenLayer contribution.
+All reviewer checks and the funded consensus path have now completed successfully.
+The corrected GenLayer contribution is ready for resubmission after the final
+public documentation update is deployed.
