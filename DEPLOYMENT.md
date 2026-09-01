@@ -2,9 +2,9 @@
 
 ## 1. Publish the tracked repository
 
-Create a public GitHub repository named `proofmint` under `haris4587`. Upload the
-complete project, including `contracts/proofmint.py`, tests, `README.md`,
-`EVIDENCE.md`, and the frontend source.
+The public, contract-focused repository is available at
+<https://github.com/haris4587/proofmint>. It includes the canonical contract,
+tests, `README.md`, `EVIDENCE.md`, and deployment instructions.
 
 Do not deploy from an untracked local copy. Record the full commit SHA that
 contains the final contract.
@@ -18,6 +18,14 @@ contains the final contract.
    `contracts/proofmint.py` file from the recorded GitHub commit.
 5. Deploy with no constructor arguments.
 6. Wait for consensus acceptance and copy the new contract address.
+
+Deployment completed from commit
+`da7839cb86865db1308e0888d8059649604e0126`:
+
+```text
+ProofMint v2: 0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A
+Explorer: https://explorer-studio.genlayer.com/address/0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A?tab=contract
+```
 
 Never reuse the rejected v1 address
 `0xAd4Ae92FE7c0eb15E21f29346DE2Bfbaa2dC52F1`.
