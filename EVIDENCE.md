@@ -62,6 +62,30 @@ Those values are recorded externally after the commit is created so this evidenc
 file never claims a self-referential commit hash. The immutable raw URL and
 fingerprint for an adjudication are calculated after this record is committed.
 
+## Live Studionet consensus record
+
+```text
+Milestone ID: 0
+Fund transaction: 0xe3a6cee2b3c21da388c234fd84c0ed06aba9720952ace356f2f478f4e3805862
+Evidence transaction: 0xfcc0dcdde4d43dead8b13a38643dcabe3433817dae9edb6f068e37fe0e4d0030
+Evidence snapshot commit: bbb4d39dbd8a3e4581e029c1b3f06fffd76ac4ab
+Evidence SHA-256: c29456e41c828b6976d29e762827c87dace201b4cafcaccb1f1aa104197f5923
+Evidence byte length: 2980
+Consensus: FINALIZED / MAJORITY_AGREE
+Validator votes: 3 AGREE, 1 DISAGREE, 1 IDLE after quorum
+Outcome: PASS
+Score: 100/100
+Evidence version: 1
+Settlement: RELEASED
+GEN funded: 0.01
+GEN released: 0.01
+Escrow remaining: 0
+```
+
+The accepted contract state stores the exact immutable URL, matching expected and
+verified hashes, byte length 2,980, the PASS decision summary, score 100, and
+evidence version 1. The full funded escrow was released to the designated worker.
+
 ## Resubmission gate
 
 ProofMint is ready to resubmit only when all three links are public and mutually
@@ -70,3 +94,4 @@ consistent:
 1. GitHub contains the tracked Python source.
 2. Explorer exposes a v2 deployment created from that source.
 3. The live reviewer page links both of them directly.
+4. A funded full-consensus transaction stores PASS and releases escrow on-chain.
