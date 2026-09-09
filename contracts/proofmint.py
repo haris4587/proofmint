@@ -1,6 +1,7 @@
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 import hashlib
 import typing
 
@@ -19,6 +20,8 @@ OUTCOME_FAIL = "FAIL"
 
 RAW_GITHUB_PREFIX = "https://raw.githubusercontent.com/"
 MAX_EVIDENCE_BYTES = 500_000
+MIN_REVISION_WINDOW_SECONDS = 5 * 60
+MAX_REVISION_WINDOW_SECONDS = 30 * 24 * 60 * 60
 
 
 @gl.evm.contract_interface
@@ -41,6 +44,8 @@ class Milestone:
     criteria_sha256: str
     funded_amount: u256
     escrow_balance: u256
+    revision_window_seconds: u256
+    revision_deadline_unix: u256
     status: str
     evidence_count: u256
     latest_evidence_url: str
@@ -82,6 +87,9 @@ class ProofMint(gl.Contract):
     def _require_valid_id(self, milestone_id: int) -> None:
         if milestone_id < 0 or milestone_id >= len(self.milestones):
             raise gl.vm.UserError("Milestone does not exist")
+
+    def _now_unix(self) -> int:
+        return int(datetime.now(timezone.utc).timestamp())
 
     def _normalize_address(self, value: str) -> str:
         clean = value.strip().lower()
@@ -128,7 +136,13 @@ class ProofMint(gl.Contract):
         return clean
 
     @gl.public.write.payable
-    def open_milestone(self, worker: str, title: str, criteria: str) -> int:
+    def open_milestone(
+        self,
+        worker: str,
+        title: str,
+        criteria: str,
+        revision_window_seconds: int,
+    ) -> int:
         clean_worker = self._normalize_address(worker)
         clean_title = title.strip()
         clean_criteria = criteria.strip()
@@ -140,6 +154,13 @@ class ProofMint(gl.Contract):
             raise gl.vm.UserError("Title must contain 3 to 120 characters")
         if len(clean_criteria) < 30 or len(clean_criteria) > 3000:
             raise gl.vm.UserError("Criteria must contain 30 to 3000 characters")
+        if (
+            revision_window_seconds < MIN_REVISION_WINDOW_SECONDS
+            or revision_window_seconds > MAX_REVISION_WINDOW_SECONDS
+        ):
+            raise gl.vm.UserError(
+                "Revision window must be between 300 and 2592000 seconds"
+            )
 
         milestone_id = len(self.milestones)
         criteria_sha256 = hashlib.sha256(clean_criteria.encode("utf-8")).hexdigest()
@@ -153,6 +174,8 @@ class ProofMint(gl.Contract):
                 criteria_sha256=criteria_sha256,
                 funded_amount=funded_amount,
                 escrow_balance=funded_amount,
+                revision_window_seconds=u256(revision_window_seconds),
+                revision_deadline_unix=u256(0),
                 status=STATUS_OPEN,
                 evidence_count=u256(0),
                 latest_evidence_url="",
@@ -180,6 +203,16 @@ class ProofMint(gl.Contract):
             raise gl.vm.UserError("Only the designated worker can submit evidence")
         if milestone.status not in (STATUS_OPEN, STATUS_REVISION):
             raise gl.vm.UserError("This milestone cannot accept another evidence version")
+
+        now_unix = self._now_unix()
+        if milestone.status == STATUS_REVISION:
+            revision_deadline = int(milestone.revision_deadline_unix)
+            if revision_deadline == 0:
+                raise gl.vm.UserError("Revision deadline is missing")
+            if now_unix >= revision_deadline:
+                raise gl.vm.UserError(
+                    "Revision deadline has passed; client can claim refund"
+                )
 
         immutable_url = self._validate_immutable_url(evidence_url)
         expected_sha256 = self._validate_hash(evidence_sha256)
@@ -362,6 +395,7 @@ Return exactly {{"agree": true}} or {{"agree": false}}.
 
         next_status = STATUS_REVISION
         next_escrow = milestone.escrow_balance
+        next_revision_deadline = milestone.revision_deadline_unix
         if decision["outcome"] == OUTCOME_PASS:
             next_status = STATUS_RELEASED
             next_escrow = u256(0)
@@ -376,6 +410,10 @@ Return exactly {{"agree": true}} or {{"agree": false}}.
             _Recipient(Address(milestone.client)).emit_transfer(
                 value=milestone.escrow_balance
             )
+        elif next_revision_deadline == u256(0):
+            next_revision_deadline = u256(
+                now_unix + int(milestone.revision_window_seconds)
+            )
 
         self.milestones[milestone_id] = Milestone(
             milestone_id=milestone.milestone_id,
@@ -386,6 +424,8 @@ Return exactly {{"agree": true}} or {{"agree": false}}.
             criteria_sha256=milestone.criteria_sha256,
             funded_amount=milestone.funded_amount,
             escrow_balance=next_escrow,
+            revision_window_seconds=milestone.revision_window_seconds,
+            revision_deadline_unix=next_revision_deadline,
             status=next_status,
             evidence_count=u256(version_number),
             latest_evidence_url=immutable_url,
@@ -394,6 +434,50 @@ Return exactly {{"agree": true}} or {{"agree": false}}.
             score=u8(decision["score"]),
             decision_summary=decision["summary"],
         )
+
+    @gl.public.write
+    def claim_revision_timeout_refund(self, milestone_id: int) -> None:
+        self._require_valid_id(milestone_id)
+        milestone = self.milestones[milestone_id]
+
+        if gl.message.sender_address.as_hex.lower() != milestone.client:
+            raise gl.vm.UserError("Only the client can claim the revision refund")
+        if milestone.status != STATUS_REVISION:
+            raise gl.vm.UserError(
+                "Only a revision-required milestone can claim timeout refund"
+            )
+
+        revision_deadline = int(milestone.revision_deadline_unix)
+        if revision_deadline == 0:
+            raise gl.vm.UserError("Revision deadline is missing")
+        if self._now_unix() < revision_deadline:
+            raise gl.vm.UserError("Revision deadline has not passed")
+
+        refund = milestone.escrow_balance
+        if refund == u256(0):
+            raise gl.vm.UserError("Milestone has no escrow to refund")
+
+        self.total_refunded = self.total_refunded + refund
+        self.milestones[milestone_id] = Milestone(
+            milestone_id=milestone.milestone_id,
+            client=milestone.client,
+            worker=milestone.worker,
+            title=milestone.title,
+            criteria=milestone.criteria,
+            criteria_sha256=milestone.criteria_sha256,
+            funded_amount=milestone.funded_amount,
+            escrow_balance=u256(0),
+            revision_window_seconds=milestone.revision_window_seconds,
+            revision_deadline_unix=milestone.revision_deadline_unix,
+            status=STATUS_REFUNDED,
+            evidence_count=milestone.evidence_count,
+            latest_evidence_url=milestone.latest_evidence_url,
+            latest_verified_sha256=milestone.latest_verified_sha256,
+            latest_evidence_bytes=milestone.latest_evidence_bytes,
+            score=milestone.score,
+            decision_summary="Revision deadline expired; escrow refunded to client",
+        )
+        _Recipient(Address(milestone.client)).emit_transfer(value=refund)
 
     @gl.public.write
     def cancel_milestone(self, milestone_id: int) -> None:
@@ -416,6 +500,8 @@ Return exactly {{"agree": true}} or {{"agree": false}}.
             criteria_sha256=milestone.criteria_sha256,
             funded_amount=milestone.funded_amount,
             escrow_balance=u256(0),
+            revision_window_seconds=milestone.revision_window_seconds,
+            revision_deadline_unix=milestone.revision_deadline_unix,
             status=STATUS_CANCELLED,
             evidence_count=milestone.evidence_count,
             latest_evidence_url=milestone.latest_evidence_url,
@@ -458,4 +544,7 @@ Return exactly {{"agree": true}} or {{"agree": false}}.
             "total_funded": self.total_funded,
             "total_released": self.total_released,
             "total_refunded": self.total_refunded,
+            "total_escrowed": (
+                self.total_funded - self.total_released - self.total_refunded
+            ),
         }

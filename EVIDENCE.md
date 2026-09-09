@@ -1,97 +1,84 @@
-# ProofMint v2 — Reviewer Evidence Record
+# ProofMint v3 — Steward Evidence Record
 
 ## Review claim
 
-ProofMint v2 is a GenLayer Intelligent Contract that binds milestone adjudication
-and GEN escrow settlement to one exact, immutable evidence version.
+ProofMint v3 is a GenLayer Intelligent Contract that binds milestone adjudication
+and GEN escrow settlement to exact immutable evidence while guaranteeing a
+deterministic escape from `REVISION_REQUIRED`.
 
-## What the source demonstrates
+## Steward-requested lifecycle repair
 
-- `open_milestone` is payable and records the client, designated worker, natural-
-  language criteria, criteria SHA-256, funded amount, and escrow balance.
-- Evidence is restricted to `raw.githubusercontent.com` URLs pinned to a lowercase
-  full 40-character commit SHA.
-- The contract fetches the artifact and verifies HTTP status, maximum size,
-  SHA-256, and exact byte length through strict validator equality.
+The source now proves all of the following:
+
+1. `open_milestone` records a client-selected revision window bounded to 300–
+   2,592,000 seconds.
+2. The first `REVISION_REQUIRED` decision sets `revision_deadline_unix` from the
+   deterministic GenVM transaction timestamp.
+3. Later revision decisions preserve that first deadline and cannot extend it.
+4. The designated worker can resubmit only before the stored deadline.
+5. At or after the deadline, only the recorded client can execute
+   `claim_revision_timeout_refund`.
+6. The refund transition writes `REFUNDED`, zeros `escrow_balance`, increments
+   `total_refunded` by exactly the remaining escrow, then emits that exact transfer
+   to the client.
+7. The terminal state makes the refund single-use and blocks later submissions.
+8. `total_escrowed = total_funded - total_released - total_refunded` makes the
+   accounting invariant directly reviewable.
+
+## Immutable evidence guarantees retained
+
+- Only `raw.githubusercontent.com` URLs pinned to lowercase full 40-character
+  commit SHAs are accepted.
+- Validators require HTTP 200 and strict equality on SHA-256 and byte length.
+- The caller's expected fingerprint must match the fetched bytes.
 - The leader and custom validator independently re-fetch and re-hash the exact
   artifact during adjudication.
-- `PASS` releases GEN to the worker; `REVISION_REQUIRED` holds escrow; demonstrated
-  material `FAIL` refunds the client.
-- Each evidence version is appended with URL, expected hash, verified hash, byte
-  length, decision, score, material-breach flag, and summary.
+- Each evidence version remains append-only with its URL, expected/verified hash,
+  length, verdict, score, breach flag, and summary.
 
-## Local verification completed
+## Verification results
 
 ```text
-GenVM lint: PASS
+GenVM lint: PASS (3 checks)
 GenVM semantic validation: PASS
-Contract: ProofMint
-Public methods: 7 (4 view, 3 write)
-Direct tests: 7 passed
-Site production build: PASS
-Frontend tests: 5 passed
+Public methods: 8 (4 view, 4 write)
+Direct tests: 9 passed
+Canonical/public source byte comparison: PASS
+Contract source SHA-256: 25c0906d12ecd9bdfc00c375db748a426c6b98f16e3a143cda16daab5af358e0
+Contract source byte length: 21325
 ```
 
-## Canonical artifacts
+## Canonical v3 artifacts
 
-- Tracked source: <https://github.com/haris4587/proofmint/blob/da7839cb86865db1308e0888d8059649604e0126/contracts/proofmint.py>
-- Raw tracked source: <https://raw.githubusercontent.com/haris4587/proofmint/da7839cb86865db1308e0888d8059649604e0126/contracts/proofmint.py>
 - Repository: <https://github.com/haris4587/proofmint>
-- Live reviewer page: <https://proofmint.ansaf1st33.chatgpt.site/source>
-- Studionet Explorer v2: <https://explorer-studio.genlayer.com/address/0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A?tab=contract>
+- Tracked source commit: pending
+- Tracked source: pending
+- Raw tracked source: pending
+- ProofMint v3 Explorer contract: pending
+- Public reviewer page: <https://proofmint.ansaf1st33.chatgpt.site/source>
 
 ## Deployment binding
 
-The ProofMint v2 deployment was created from the exact tracked
-`contracts/proofmint.py` at commit
-`da7839cb86865db1308e0888d8059649604e0126`.
+The v3 address, deployment transaction, exact source commit, source SHA-256, and
+source byte length are inserted only after the contract is deployed from the
+verified tracked bytes.
+
+## Live revision-timeout test
+
+The live test will fund a self-worker milestone, submit the commit-pinned
+`evidence/revision-timeout-demo.txt` fixture, obtain `REVISION_REQUIRED`, wait for
+its 300-second fixed deadline, and execute the client-only timeout refund. The
+final record will include transaction links and reads proving `REFUNDED`, zero
+escrow, and exact totals.
+
+## Historical evidence — not v3 proof
 
 ```text
-ProofMint v2 address: 0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A
-Contract source SHA-256: a90e593eb7ee2eabfe5e4102e8584873a214ae31cd28763b35ac3d6fbe6bc3b5
-Contract source byte length: 17452
+Rejected v1 address: 0xAd4Ae92FE7c0eb15E21f29346DE2Bfbaa2dC52F1
+Superseded v2 address: 0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A
+V2 funded transaction: 0xe3a6cee2b3c21da388c234fd84c0ed06aba9720952ace356f2f478f4e3805862
+V2 PASS transaction: 0xfcc0dcdde4d43dead8b13a38643dcabe3433817dae9edb6f068e37fe0e4d0030
 ```
 
-The rejected v1 address
-`0xAd4Ae92FE7c0eb15E21f29346DE2Bfbaa2dC52F1` is historical and is not valid v2
-evidence.
-
-The deployment record must capture the selected Git commit, this file's raw URL,
-its SHA-256 digest, its exact byte length, and the resulting ProofMint v2 address.
-Those values are recorded externally after the commit is created so this evidence
-file never claims a self-referential commit hash. The immutable raw URL and
-fingerprint for an adjudication are calculated after this record is committed.
-
-## Live Studionet consensus record
-
-```text
-Milestone ID: 0
-Fund transaction: 0xe3a6cee2b3c21da388c234fd84c0ed06aba9720952ace356f2f478f4e3805862
-Evidence transaction: 0xfcc0dcdde4d43dead8b13a38643dcabe3433817dae9edb6f068e37fe0e4d0030
-Evidence snapshot commit: bbb4d39dbd8a3e4581e029c1b3f06fffd76ac4ab
-Evidence SHA-256: c29456e41c828b6976d29e762827c87dace201b4cafcaccb1f1aa104197f5923
-Evidence byte length: 2980
-Consensus: FINALIZED / MAJORITY_AGREE
-Validator votes: 3 AGREE, 1 DISAGREE, 1 IDLE after quorum
-Outcome: PASS
-Score: 100/100
-Evidence version: 1
-Settlement: RELEASED
-GEN funded: 0.01
-GEN released: 0.01
-Escrow remaining: 0
-```
-
-The accepted contract state stores the exact immutable URL, matching expected and
-verified hashes, byte length 2,980, the PASS decision summary, score 100, and
-evidence version 1. The full funded escrow was released to the designated worker.
-
-## Resubmission gate
-
-ProofMint is ready to resubmit only when all three links are public and mutually
-consistent:
-
-1. GitHub contains the tracked Python source.
-2. Explorer exposes a v2 deployment created from that source.
-3. The live reviewer page links both of them directly.
-4. A funded full-consensus transaction stores PASS and releases escrow on-chain.
+Those records remain only as history. They do not claim that v3's timeout path
+was present or exercised.

@@ -1,19 +1,41 @@
-# ProofMint v2
+# ProofMint v3 — Deadline-Safe Immutable Evidence Escrow
 
 ProofMint is a GenLayer Intelligent Contract for version-bound milestone escrow.
 A client funds a milestone in native GEN and designates one worker. The worker
 submits an immutable GitHub artifact, its SHA-256, and exact byte length. The
 contract independently verifies those bytes before GenLayer validators judge the
-artifact against the stored natural-language acceptance criteria.
+artifact against the stored natural-language acceptance criteria. Each milestone
+also commits to a client-selected revision window of 300 to 2,592,000 seconds.
 
 The settlement result is deterministic:
 
 - `PASS` releases escrow to the designated worker.
-- `REVISION_REQUIRED` keeps escrow locked and permits another immutable version.
+- `REVISION_REQUIRED` starts one fixed revision deadline and permits another
+  immutable version only before that deadline.
 - `FAIL` with a demonstrated material breach refunds the client.
+- When the fixed revision deadline expires, only the client can call
+  `claim_revision_timeout_refund` to recover the full remaining escrow.
 - A client may cancel and recover escrow only before the first submission.
 
-## Why v2 exists
+## Why v3 exists
+
+A steward found that v2 escrow could remain locked forever after
+`REVISION_REQUIRED` if the worker stopped resubmitting. v3 closes that lifecycle
+gap with a deterministic, authorized, fully accounted timeout transition.
+
+- The client chooses a bounded revision window when funding the milestone.
+- The worker accepts that on-chain term by choosing to submit the first evidence.
+- The first `REVISION_REQUIRED` result stores `revision_deadline_unix` using the
+  deterministic GenVM transaction timestamp.
+- Later revisions preserve the first deadline; a worker cannot extend it.
+- Worker resubmission is rejected at or after the deadline.
+- At or after the deadline, only the client may atomically zero escrow, increment
+  `total_refunded`, transition to `REFUNDED`, and receive the full balance.
+- The terminal status prevents a second refund or any later evidence submission.
+- `get_totals()` exposes `total_escrowed`, so reviewers can verify
+  `funded = released + refunded + escrowed`.
+
+## Why v2 existed
 
 The original ProofMint submission was rejected because its Studio link opened the
 Studio application instead of exposing reviewable contract source. v2 fixes the
@@ -26,7 +48,17 @@ review path and materially strengthens the protocol itself:
 - immutable evidence binding instead of a mutable HTTPS URL;
 - append-only evidence versions and explicit settlement accounting.
 
-The rejected v1 deployment is historical and must not be used as proof of v2.
+The rejected v1 and superseded v2 deployments are historical and must not be used
+as proof of v3.
+
+## Revision escape invariant
+
+The deadline is exclusive for the worker and inclusive for the client: evidence
+may be resubmitted only while `transaction_timestamp < revision_deadline_unix`;
+the timeout refund becomes available when
+`transaction_timestamp >= revision_deadline_unix`. There is no overlap and no
+unowned time gap. Because later `REVISION_REQUIRED` outcomes preserve the first
+deadline, repeated submissions cannot postpone the client escape path.
 
 ## Immutable evidence invariant
 
@@ -48,8 +80,9 @@ The caller cannot make a mutable URL or false fingerprint authoritative.
 
 | Method | Type | Purpose |
 | --- | --- | --- |
-| `open_milestone(worker, title, criteria)` | payable write | Stores the rubric and designated worker; locks `gl.message.value`. |
+| `open_milestone(worker, title, criteria, revision_window_seconds)` | payable write | Stores the rubric, worker, and bounded timeout term; locks `gl.message.value`. |
 | `submit_evidence(id, url, sha256, bytes)` | write + consensus | Verifies the pinned artifact, adjudicates it, and settles or holds escrow. |
+| `claim_revision_timeout_refund(id)` | write | After the fixed revision deadline, atomically refunds the remaining escrow to the client. |
 | `cancel_milestone(id)` | write | Refunds an unsubmitted open milestone to its client. |
 | `get_milestone(id)` | view | Returns current milestone and escrow state. |
 | `get_evidence_version(id, version)` | view | Returns one immutable append-only submission record. |
@@ -72,7 +105,7 @@ instructions inside the artifact or relying on linked/outside material.
 
 ## Tests
 
-The direct suite contains seven tests covering:
+The direct suite contains nine tests covering:
 
 - funded creation and totals;
 - zero-value and invalid-address guards;
@@ -80,6 +113,10 @@ The direct suite contains seven tests covering:
 - caller-supplied fingerprint mismatch rejection;
 - designated-worker authorization;
 - append-only revision history and independent validator re-fetching;
+- bounded revision-window validation;
+- fixed-deadline non-extension across repeated revisions;
+- exact deadline boundary, late-worker rejection, and client-only authorization;
+- one-time timeout refund and funded/released/refunded/escrowed accounting;
 - release, material-breach refund, and pre-submission cancellation paths.
 
 Run the complete verification:
@@ -97,8 +134,8 @@ Expected results:
 GenVM lint passed
 GenVM validation passed
 Contract: ProofMint
-Methods: 7 (4 view, 3 write)
-7 passed
+Methods: 8 (4 view, 4 write)
+9 passed
 ```
 
 ## Project structure
@@ -108,8 +145,9 @@ This public repository is intentionally contract-focused. The live reviewer inte
 ```text
 contracts/proofmint.py                 Canonical Intelligent Contract
 public/proofmint.py                    Byte-identical direct review copy
-tests/direct/test_proofmint.py         Seven direct tests
+tests/direct/test_proofmint.py         Nine direct tests
 tests/integration/test_studionet_deploy.py  Deployment smoke test
+evidence/revision-timeout-demo.txt     Pinned live timeout-path fixture
 EVIDENCE.md                            Verifiable review record
 DEPLOYMENT.md                          Deployment and resubmission checklist
 ```
@@ -118,20 +156,23 @@ DEPLOYMENT.md                          Deployment and resubmission checklist
 
 - Site: <https://proofmint.ansaf1st33.chatgpt.site>
 - Repository target: <https://github.com/haris4587/proofmint>
-- Deployment source commit: `da7839cb86865db1308e0888d8059649604e0126`
-- New v2 Studionet address: `0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A`
-- Explorer: <https://explorer-studio.genlayer.com/address/0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A?tab=contract>
+- Deployment source commit: pending final v3 verification
+- ProofMint v3 Studionet address: pending final v3 deployment
+- Explorer: pending final v3 deployment
 
-The repository and deployment are bound. The funded full-consensus test completed
-successfully and the public reviewer page exposes the final proof.
+The v3 deployment and live revision-timeout evidence will be recorded here only
+after the exact tracked source passes lint and all tests.
 
-## Live Studionet proof
+## Historical v2 Studionet proof
 
 - Fund transaction: <https://explorer-studio.genlayer.com/tx/0xe3a6cee2b3c21da388c234fd84c0ed06aba9720952ace356f2f478f4e3805862>
 - Evidence transaction: <https://explorer-studio.genlayer.com/tx/0xfcc0dcdde4d43dead8b13a38643dcabe3433817dae9edb6f068e37fe0e4d0030>
 - Consensus: `FINALIZED / MAJORITY_AGREE`
 - Verdict: `PASS`, score `100/100`
 - Settlement: evidence version `1`; `0.01 GEN` released; escrow balance `0`
+
+This record proves the older v2 happy path only. It is not presented as evidence
+that v3's revision-timeout path has deployed or executed.
 
 ## License
 

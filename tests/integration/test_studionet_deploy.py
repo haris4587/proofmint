@@ -23,6 +23,7 @@ def test_deploy_and_open_funded_sample_milestone():
                 "page, clear setup instructions, and automated tests that pass. "
                 "Evidence must use a full Git commit and verified SHA-256."
             ),
+            604800,
         ]
     ).transact(value=10**16, wait_interval=1000, wait_retries=120)
 

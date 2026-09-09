@@ -1,0 +1,11 @@
+# ProofMint v3 revision-timeout demonstration
+
+TEST_CASE: REVISION_TIMEOUT_ESCAPE
+DELIVERABLE_STATUS: INCOMPLETE
+AUTOMATED_TESTS: NOT YET REPORTED
+FINAL_APPROVAL: MISSING
+
+This immutable artifact intentionally describes incomplete but fixable work. It
+is used only to exercise the `REVISION_REQUIRED` state, its fixed deadline, and
+the authorized client refund after that deadline. It is not delivery evidence
+for a real worker milestone.

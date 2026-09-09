@@ -1,98 +1,90 @@
-# ProofMint v2 Deployment Checklist
+# ProofMint v3 Deployment and Verification Record
 
-## 1. Publish the tracked repository
+## Steward requirement
 
-The public, contract-focused repository is available at
-<https://github.com/haris4587/proofmint>. It includes the canonical contract,
-tests, `README.md`, `EVIDENCE.md`, and deployment instructions.
+The v2 lifecycle could leave escrow permanently locked after
+`REVISION_REQUIRED`. ProofMint v3 adds a bounded, fixed revision deadline and the
+client-only `claim_revision_timeout_refund` terminal transition. Source, tests,
+deployment, and live evidence must all describe this same v3 implementation.
 
-Do not deploy from an untracked local copy. Record the full commit SHA that
-contains the final contract.
+## 1. Verify the tracked source
+
+Run from the repository root:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/genvm-lint check contracts/proofmint.py
+.venv/bin/python -m pytest tests/direct -q
+cmp contracts/proofmint.py public/proofmint.py
+```
+
+Required result:
+
+```text
+GenVM lint and semantic validation: PASS
+Direct tests: 9 passed
+Canonical and public source copies: byte-identical
+```
 
 ## 2. Deploy the exact tracked contract
 
 1. Open <https://studio.genlayer.com/>.
-2. Connect MetaMask wallet `0x805F46E1e097D1ed67d5619671E99036495DB95c`.
-3. Select **Studionet** and keep **Simulation Mode unchecked**.
-4. Create/import a contract using the exact tracked
-   `contracts/proofmint.py` file from the recorded GitHub commit.
-5. Deploy with no constructor arguments.
-6. Wait for consensus acceptance and copy the new contract address.
+2. Use Studionet with simulation mode disabled.
+3. Load the exact `contracts/proofmint.py` bytes from the recorded source commit.
+4. Deploy with no constructor arguments and wait for accepted/finalized success.
+5. Compare the Explorer contract code with the tracked source.
 
-Deployment completed from commit
-`da7839cb86865db1308e0888d8059649604e0126`:
+Final v3 source commit, address, transaction, source SHA-256, and byte length are
+recorded after deployment; no placeholder is evidence.
 
-```text
-ProofMint v2: 0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A
-Explorer: https://explorer-studio.genlayer.com/address/0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A?tab=contract
-```
+## 3. Execute the steward-path live test
 
-Never reuse the rejected v1 address
-`0xAd4Ae92FE7c0eb15E21f29346DE2Bfbaa2dC52F1`.
-
-## 3. Execute a funded smoke test
-
-Call `open_milestone` from the connected wallet with a small Studionet GEN value:
+Open a self-worker test milestone using a small Studionet GEN amount:
 
 ```text
-worker: 0x805F46E1e097D1ed67d5619671E99036495DB95c
-title: ProofMint v2 immutable evidence smoke test
-criteria: The pinned EVIDENCE.md must describe ProofMint v2 escrow, immutable GitHub commit binding, validator SHA-256 verification, seven passing direct tests, and the public source and reviewer links.
-value: 0.01 GEN (or another small Studionet test amount)
+worker: connected client address
+title: ProofMint v3 revision timeout escape test
+criteria: PASS only when the pinned artifact reports a complete deliverable,
+          passing automated tests, and granted final approval. Incomplete but
+          fixable work must be REVISION_REQUIRED rather than FAIL.
+revision_window_seconds: 300
+value: small Studionet test amount
 ```
 
-Then call `get_milestone_count()` and `get_totals()` to confirm accepted state.
+Submit the immutable raw URL for
+`evidence/revision-timeout-demo.txt`, pinned to the full source commit, with its
+exact SHA-256 and byte length. The fixture intentionally describes fixable,
+incomplete work and should produce `REVISION_REQUIRED`.
 
-Completed:
+Verify `get_milestone(id)` stores:
+
+- `status = REVISION_REQUIRED`;
+- the original full `escrow_balance`;
+- `revision_window_seconds = 300`;
+- a nonzero `revision_deadline_unix` equal to the evidence transaction timestamp
+  plus 300 seconds.
+
+At or after that deadline, call `claim_revision_timeout_refund(id)` from the
+client. Verify the final state is `REFUNDED`, escrow is zero, `total_refunded`
+increased once, and `total_escrowed` returned to zero. A second refund call and a
+late worker resubmission must be rejected by the terminal state.
+
+## 4. Publication checks
+
+- GitHub canonical and public source copies match.
+- Explorer exposes the exact v3 deployed code and all eight public methods.
+- README and `EVIDENCE.md` identify v1/v2 addresses as historical.
+- Every v3 transaction link targets the v3 address.
+- The public reviewer page, if retained as evidence, links the v3 repository and
+  v3 Explorer deployment rather than the superseded v2 address.
+
+## Historical deployments
+
+These addresses are preserved only for audit history and must not be submitted as
+v3 proof:
 
 ```text
-Milestone ID: 0
-Fund transaction: 0xe3a6cee2b3c21da388c234fd84c0ed06aba9720952ace356f2f478f4e3805862
-Funded: 0.01 GEN
+Rejected v1: 0xAd4Ae92FE7c0eb15E21f29346DE2Bfbaa2dC52F1
+Superseded v2: 0x59e3468A6fbC37B2fAc8D17f97695662aa31E33A
 ```
-
-## 4. Run a full evidence adjudication
-
-Use the raw `EVIDENCE.md` URL pinned to the final 40-character Git commit. Compute
-its SHA-256 and exact byte length from the raw bytes, then call:
-
-```text
-submit_evidence(milestone_id, raw_url, sha256, byte_length)
-```
-
-Wait for the consensus result and confirm the first append-only evidence version
-through `get_evidence_version(milestone_id, 1)`.
-
-Completed:
-
-```text
-Evidence transaction: 0xfcc0dcdde4d43dead8b13a38643dcabe3433817dae9edb6f068e37fe0e4d0030
-Consensus: FINALIZED / MAJORITY_AGREE
-Outcome: PASS
-Score: 100/100
-Evidence version: 1
-Settlement: RELEASED (0.01 GEN)
-```
-
-## 5. Bind the website to the deployment
-
-Update `lib/proofmint.ts`:
-
-- replace the historical address with the new v2 address;
-- set `PROOFMINT_DEPLOYMENT_READY = true`;
-- confirm the GitHub and Explorer URLs;
-- rebuild and redeploy the existing ProofMint Site.
-
-## 6. Final reviewer checks
-
-- `/source` opens without authentication.
-- **Tracked source** opens the exact GitHub `.py` file.
-- **Verify in Explorer** opens the new v2 contract.
-- the source and deployed schema both show seven methods;
-- the homepage wallet connects to Studionet;
-- funded milestone and evidence forms target the new address;
-- the old address is not presented as v2.
-
-All reviewer checks and the funded consensus path have now completed successfully.
-The corrected GenLayer contribution is ready for resubmission after the final
-public documentation update is deployed.
