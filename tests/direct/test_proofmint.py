@@ -20,6 +20,9 @@ EVIDENCE_BODY = (
 EVIDENCE_SHA = hashlib.sha256(EVIDENCE_BODY).hexdigest()
 ESCROW = 2_000_000_000_000_000_000
 REVISION_WINDOW_SECONDS = 7 * 24 * 60 * 60
+# genlayer-test 0.29.2 expects the pre-0.3 universal runner bundle name.
+# Pinning the official fallback keeps clean-environment test runs deterministic.
+GENVM_SDK_VERSION = "v0.2.16"
 REVISION_START = "2026-09-09T12:00:00Z"
 REVISION_START_UNIX = int(
     datetime.fromisoformat(REVISION_START.replace("Z", "+00:00"))
@@ -84,7 +87,9 @@ def submit(contract, direct_vm, worker, milestone_id):
 def test_open_funded_milestone_and_totals(
     direct_vm, direct_deploy, direct_alice, direct_bob
 ):
-    contract = direct_deploy("contracts/proofmint.py")
+    contract = direct_deploy(
+        "contracts/proofmint.py", sdk_version=GENVM_SDK_VERSION
+    )
     milestone_id = open_case(contract, direct_vm, direct_alice, direct_bob)
 
     milestone = contract.get_milestone(milestone_id)
@@ -108,7 +113,9 @@ def test_open_funded_milestone_and_totals(
 def test_open_rejects_zero_escrow_and_invalid_worker(
     direct_vm, direct_deploy, direct_alice, direct_bob
 ):
-    contract = direct_deploy("contracts/proofmint.py")
+    contract = direct_deploy(
+        "contracts/proofmint.py", sdk_version=GENVM_SDK_VERSION
+    )
     direct_vm.sender = direct_alice
     direct_vm.value = 0
     with direct_vm.expect_revert("Milestone escrow must be greater than zero"):
@@ -136,7 +143,9 @@ def test_open_rejects_zero_escrow_and_invalid_worker(
 def test_rejects_mutable_or_abbreviated_github_evidence(
     direct_vm, direct_deploy, direct_alice, direct_bob
 ):
-    contract = direct_deploy("contracts/proofmint.py")
+    contract = direct_deploy(
+        "contracts/proofmint.py", sdk_version=GENVM_SDK_VERSION
+    )
     milestone_id = open_case(contract, direct_vm, direct_alice, direct_bob)
     direct_vm.sender = direct_bob
 
@@ -165,7 +174,9 @@ def test_rejects_mutable_or_abbreviated_github_evidence(
 def test_rejects_caller_fingerprint_that_does_not_match_fetched_bytes(
     direct_vm, direct_deploy, direct_alice, direct_bob
 ):
-    contract = direct_deploy("contracts/proofmint.py")
+    contract = direct_deploy(
+        "contracts/proofmint.py", sdk_version=GENVM_SDK_VERSION
+    )
     milestone_id = open_case(contract, direct_vm, direct_alice, direct_bob)
     direct_vm.sender = direct_bob
     direct_vm.mock_web(
@@ -187,7 +198,9 @@ def test_rejects_caller_fingerprint_that_does_not_match_fetched_bytes(
 def test_only_designated_worker_can_submit(
     direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie
 ):
-    contract = direct_deploy("contracts/proofmint.py")
+    contract = direct_deploy(
+        "contracts/proofmint.py", sdk_version=GENVM_SDK_VERSION
+    )
     milestone_id = open_case(contract, direct_vm, direct_alice, direct_bob)
     direct_vm.sender = direct_charlie
 
@@ -203,7 +216,9 @@ def test_only_designated_worker_can_submit(
 def test_revision_is_append_only_and_validator_refetches_exact_bytes(
     direct_vm, direct_deploy, direct_alice, direct_bob
 ):
-    contract = direct_deploy("contracts/proofmint.py")
+    contract = direct_deploy(
+        "contracts/proofmint.py", sdk_version=GENVM_SDK_VERSION
+    )
     milestone_id = open_case(contract, direct_vm, direct_alice, direct_bob)
     mock_decision(
         direct_vm,
@@ -242,7 +257,9 @@ def test_revision_deadline_is_fixed_and_blocks_late_worker_resubmission(
     direct_vm, direct_deploy, direct_alice, direct_bob
 ):
     direct_vm.warp(REVISION_START)
-    contract = direct_deploy("contracts/proofmint.py")
+    contract = direct_deploy(
+        "contracts/proofmint.py", sdk_version=GENVM_SDK_VERSION
+    )
     milestone_id = open_case(contract, direct_vm, direct_alice, direct_bob)
     mock_decision(
         direct_vm,
@@ -288,7 +305,9 @@ def test_client_claims_revision_timeout_refund_once_with_correct_accounting(
     direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie
 ):
     direct_vm.warp(REVISION_START)
-    contract = direct_deploy("contracts/proofmint.py")
+    contract = direct_deploy(
+        "contracts/proofmint.py", sdk_version=GENVM_SDK_VERSION
+    )
     milestone_id = open_case(contract, direct_vm, direct_alice, direct_bob)
     mock_decision(
         direct_vm,
@@ -337,7 +356,9 @@ def test_client_claims_revision_timeout_refund_once_with_correct_accounting(
 def test_release_refund_and_cancel_settlement_paths(
     direct_vm, direct_deploy, direct_alice, direct_bob
 ):
-    contract = direct_deploy("contracts/proofmint.py")
+    contract = direct_deploy(
+        "contracts/proofmint.py", sdk_version=GENVM_SDK_VERSION
+    )
 
     pass_id = open_case(contract, direct_vm, direct_alice, direct_bob)
     mock_decision(

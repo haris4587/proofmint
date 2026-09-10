@@ -101,8 +101,8 @@ remaining escrow. The terminal state prevents a second refund or later evidence.
 - Explorer exposes the exact v3 deployed code and all eight public methods.
 - README and `EVIDENCE.md` identify v1/v2 addresses as historical.
 - Every v3 transaction link targets the v3 address.
-- GitHub and Explorer are the authoritative v3 review links; the separately
-  hosted reviewer page is auxiliary and is not used as the deployment binding.
+- GitHub and Explorer are the authoritative v3 review links. Historical reviewer
+  sites are deliberately excluded from the v3 deployment binding.
 
 ## Historical deployments
 

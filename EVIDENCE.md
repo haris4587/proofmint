@@ -43,6 +43,7 @@ GenVM lint: PASS (3 checks)
 GenVM semantic validation: PASS
 Public methods: 8 (4 view, 4 write)
 Direct tests: 9 passed
+Direct-test GenVM runner: v0.2.16 (explicitly pinned)
 Canonical/public source byte comparison: PASS
 Contract source SHA-256: 25c0906d12ecd9bdfc00c375db748a426c6b98f16e3a143cda16daab5af358e0
 Contract source byte length: 21325
@@ -56,7 +57,6 @@ Contract source byte length: 21325
 - Raw tracked source: <https://raw.githubusercontent.com/haris4587/proofmint/b03de3ec6fe9a9dbe4c5ffaa6be3cbaa1afe0639/contracts/proofmint.py>
 - Pinned test fixture: <https://raw.githubusercontent.com/haris4587/proofmint/b03de3ec6fe9a9dbe4c5ffaa6be3cbaa1afe0639/evidence/revision-timeout-demo.txt>
 - ProofMint v3 Explorer contract: <https://explorer-studio.genlayer.com/address/0x2E213ECc435D6475617cf13eA61065c6EcB865DC?tab=contract>
-- Public reviewer page: <https://proofmint.ansaf1st33.chatgpt.site/source>
 
 ## Deployment binding
 

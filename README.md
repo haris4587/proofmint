@@ -128,6 +128,10 @@ python3 -m venv .venv
 .venv/bin/python -m pytest tests/direct -q
 ```
 
+The direct suite pins the official GenVM `v0.2.16` runner bundle. This avoids
+dependency drift in `genlayer-test==0.29.2`, whose automatic latest-release
+lookup still expects the pre-0.3 bundle filename.
+
 Expected results:
 
 ```text
@@ -140,7 +144,8 @@ Methods: 8 (4 view, 4 write)
 
 ## Project structure
 
-This public repository is intentionally contract-focused. The live reviewer interface is published separately at the Site URL below.
+This public repository is intentionally contract-focused. GitHub and GenLayer
+Explorer are the authoritative source and deployment records.
 
 ```text
 contracts/proofmint.py                 Canonical Intelligent Contract
@@ -154,7 +159,6 @@ DEPLOYMENT.md                          Deployment and resubmission checklist
 
 ## Current publication
 
-- Site: <https://proofmint.ansaf1st33.chatgpt.site>
 - Repository target: <https://github.com/haris4587/proofmint>
 - Deployment source commit: <https://github.com/haris4587/proofmint/commit/b03de3ec6fe9a9dbe4c5ffaa6be3cbaa1afe0639>
 - ProofMint v3 Studionet address: <https://explorer-studio.genlayer.com/address/0x2E213ECc435D6475617cf13eA61065c6EcB865DC?tab=contract>
