@@ -156,12 +156,27 @@ DEPLOYMENT.md                          Deployment and resubmission checklist
 
 - Site: <https://proofmint.ansaf1st33.chatgpt.site>
 - Repository target: <https://github.com/haris4587/proofmint>
-- Deployment source commit: pending final v3 verification
-- ProofMint v3 Studionet address: pending final v3 deployment
-- Explorer: pending final v3 deployment
+- Deployment source commit: <https://github.com/haris4587/proofmint/commit/b03de3ec6fe9a9dbe4c5ffaa6be3cbaa1afe0639>
+- ProofMint v3 Studionet address: <https://explorer-studio.genlayer.com/address/0x2E213ECc435D6475617cf13eA61065c6EcB865DC?tab=contract>
+- Deployment transaction: <https://explorer-studio.genlayer.com/tx/0x96271bdbefdee98240dec99842186f2e7d45f0f15f33084a6437f1022f519aa1>
 
-The v3 deployment and live revision-timeout evidence will be recorded here only
-after the exact tracked source passes lint and all tests.
+The deployed contract source is byte-identical to the tracked v3 source (21,325
+bytes; SHA-256
+`25c0906d12ecd9bdfc00c375db748a426c6b98f16e3a143cda16daab5af358e0`).
+
+## Live v3 revision-timeout proof
+
+The funded Studionet test used milestone `0` and a 300-second revision window:
+
+- Open milestone: <https://explorer-studio.genlayer.com/tx/0x5391935d4abee09b67e4d07798bef3fbfa8a87675828298a7a9a6f29737728fb>
+- Evidence adjudication (`REVISION_REQUIRED`): <https://explorer-studio.genlayer.com/tx/0x611b6434b762a64f9b1cbda61ee21841aad34be68f621cdfba41dfe08146916a>
+- Client timeout refund: <https://explorer-studio.genlayer.com/tx/0xeabf8444e23066b76a9dc94efe5a501c37fb37c6b597f626c4aee864e915ad93>
+
+The finalized read for milestone `0` is `REFUNDED` with one evidence version,
+`revision_deadline_unix = 1788967766`, and zero escrow. `get_totals()` reports
+`total_released = 0`, `total_refunded = total_funded`, and `total_escrowed = 0`.
+The artifact used in the adjudication is the commit-pinned
+`evidence/revision-timeout-demo.txt` fixture recorded in `EVIDENCE.md`.
 
 ## Historical v2 Studionet proof
 

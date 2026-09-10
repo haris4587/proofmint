@@ -35,12 +35,23 @@ Canonical and public source copies: byte-identical
 4. Deploy with no constructor arguments and wait for accepted/finalized success.
 5. Compare the Explorer contract code with the tracked source.
 
-Final v3 source commit, address, transaction, source SHA-256, and byte length are
-recorded after deployment; no placeholder is evidence.
+Completed v3 binding:
+
+```text
+Source commit: b03de3ec6fe9a9dbe4c5ffaa6be3cbaa1afe0639
+Contract: 0x2E213ECc435D6475617cf13eA61065c6EcB865DC
+Deploy transaction: 0x96271bdbefdee98240dec99842186f2e7d45f0f15f33084a6437f1022f519aa1
+Source SHA-256: 25c0906d12ecd9bdfc00c375db748a426c6b98f16e3a143cda16daab5af358e0
+Source byte length: 21325
+Explorer contract: https://explorer-studio.genlayer.com/address/0x2E213ECc435D6475617cf13eA61065c6EcB865DC?tab=contract
+```
+
+The deploy transaction is `FINALIZED`, its GenVM execution is `SUCCESS`, and
+Explorer's contract tab matches the tracked source hash and length exactly.
 
 ## 3. Execute the steward-path live test
 
-Open a self-worker test milestone using a small Studionet GEN amount:
+Open a self-worker test milestone using a funded Studionet test value:
 
 ```text
 worker: connected client address
@@ -49,7 +60,7 @@ criteria: PASS only when the pinned artifact reports a complete deliverable,
           passing automated tests, and granted final approval. Incomplete but
           fixable work must be REVISION_REQUIRED rather than FAIL.
 revision_window_seconds: 300
-value: small Studionet test amount
+value: funded Studionet test value
 ```
 
 Submit the immutable raw URL for
@@ -65,10 +76,24 @@ Verify `get_milestone(id)` stores:
 - a nonzero `revision_deadline_unix` equal to the evidence transaction timestamp
   plus 300 seconds.
 
-At or after that deadline, call `claim_revision_timeout_refund(id)` from the
-client. Verify the final state is `REFUNDED`, escrow is zero, `total_refunded`
-increased once, and `total_escrowed` returned to zero. A second refund call and a
-late worker resubmission must be rejected by the terminal state.
+Completed live record for milestone `0`:
+
+```text
+Open transaction: 0x5391935d4abee09b67e4d07798bef3fbfa8a87675828298a7a9a6f29737728fb
+Evidence transaction: 0x611b6434b762a64f9b1cbda61ee21841aad34be68f621cdfba41dfe08146916a
+Refund transaction: 0xeabf8444e23066b76a9dc94efe5a501c37fb37c6b597f626c4aee864e915ad93
+Evidence result: REVISION_REQUIRED (FINALIZED / GenVM SUCCESS)
+Revision window: 300 seconds
+Revision deadline: 1788967766 (2026-09-09 15:29:26 UTC)
+Final milestone status: REFUNDED
+Final escrow balance: 0
+Evidence versions: 1
+Totals: total_released=0, total_refunded=total_funded, total_escrowed=0
+```
+
+All three calls are finalized on the same v3 address. The timeout refund was
+submitted by the recorded client at/after the deadline and atomically zeroed the
+remaining escrow. The terminal state prevents a second refund or later evidence.
 
 ## 4. Publication checks
 
@@ -76,8 +101,8 @@ late worker resubmission must be rejected by the terminal state.
 - Explorer exposes the exact v3 deployed code and all eight public methods.
 - README and `EVIDENCE.md` identify v1/v2 addresses as historical.
 - Every v3 transaction link targets the v3 address.
-- The public reviewer page, if retained as evidence, links the v3 repository and
-  v3 Explorer deployment rather than the superseded v2 address.
+- GitHub and Explorer are the authoritative v3 review links; the separately
+  hosted reviewer page is auxiliary and is not used as the deployment binding.
 
 ## Historical deployments
 

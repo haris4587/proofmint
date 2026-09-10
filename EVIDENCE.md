@@ -51,25 +51,53 @@ Contract source byte length: 21325
 ## Canonical v3 artifacts
 
 - Repository: <https://github.com/haris4587/proofmint>
-- Tracked source commit: pending
-- Tracked source: pending
-- Raw tracked source: pending
-- ProofMint v3 Explorer contract: pending
+- Tracked source commit: <https://github.com/haris4587/proofmint/commit/b03de3ec6fe9a9dbe4c5ffaa6be3cbaa1afe0639>
+- Tracked source: <https://github.com/haris4587/proofmint/blob/b03de3ec6fe9a9dbe4c5ffaa6be3cbaa1afe0639/contracts/proofmint.py>
+- Raw tracked source: <https://raw.githubusercontent.com/haris4587/proofmint/b03de3ec6fe9a9dbe4c5ffaa6be3cbaa1afe0639/contracts/proofmint.py>
+- Pinned test fixture: <https://raw.githubusercontent.com/haris4587/proofmint/b03de3ec6fe9a9dbe4c5ffaa6be3cbaa1afe0639/evidence/revision-timeout-demo.txt>
+- ProofMint v3 Explorer contract: <https://explorer-studio.genlayer.com/address/0x2E213ECc435D6475617cf13eA61065c6EcB865DC?tab=contract>
 - Public reviewer page: <https://proofmint.ansaf1st33.chatgpt.site/source>
 
 ## Deployment binding
 
-The v3 address, deployment transaction, exact source commit, source SHA-256, and
-source byte length are inserted only after the contract is deployed from the
-verified tracked bytes.
+The contract was deployed from the exact tracked source commit above:
+
+```text
+ProofMint v3 address: 0x2E213ECc435D6475617cf13eA61065c6EcB865DC
+Deploy transaction: 0x96271bdbefdee98240dec99842186f2e7d45f0f15f33084a6437f1022f519aa1
+Explorer: https://explorer-studio.genlayer.com/tx/0x96271bdbefdee98240dec99842186f2e7d45f0f15f33084a6437f1022f519aa1
+Contract source SHA-256: 25c0906d12ecd9bdfc00c375db748a426c6b98f16e3a143cda16daab5af358e0
+Contract source byte length: 21325
+```
+
+The deployment is `FINALIZED` with GenVM `SUCCESS`. Explorer's contract source
+tab is byte-identical to the tracked source at the pinned commit.
 
 ## Live revision-timeout test
 
-The live test will fund a self-worker milestone, submit the commit-pinned
-`evidence/revision-timeout-demo.txt` fixture, obtain `REVISION_REQUIRED`, wait for
-its 300-second fixed deadline, and execute the client-only timeout refund. The
-final record will include transaction links and reads proving `REFUNDED`, zero
-escrow, and exact totals.
+The funded self-worker test used milestone `0`, the commit-pinned
+`evidence/revision-timeout-demo.txt` fixture, and a 300-second window:
+
+```text
+Open milestone: https://explorer-studio.genlayer.com/tx/0x5391935d4abee09b67e4d07798bef3fbfa8a87675828298a7a9a6f29737728fb
+Evidence adjudication: https://explorer-studio.genlayer.com/tx/0x611b6434b762a64f9b1cbda61ee21841aad34be68f621cdfba41dfe08146916a
+Timeout refund: https://explorer-studio.genlayer.com/tx/0xeabf8444e23066b76a9dc94efe5a501c37fb37c6b597f626c4aee864e915ad93
+Evidence outcome: REVISION_REQUIRED
+Revision deadline: 1788967766 (2026-09-09 15:29:26 UTC)
+Final status: REFUNDED
+Final escrow_balance: 0
+Evidence version count: 1
+total_funded: 1000000000000000000000000000000000
+total_released: 0
+total_refunded: 1000000000000000000000000000000000
+total_escrowed: 0
+```
+
+The evidence transaction's equivalence outputs report HTTP 200, byte length 439,
+the expected SHA-256, and `REVISION_REQUIRED`. After the fixed deadline, the
+client-only refund finalized successfully, transferred the exact remaining
+escrow, and left the terminal state with no escrow. The equality
+`total_funded = total_refunded + total_released + total_escrowed` holds exactly.
 
 ## Historical evidence — not v3 proof
 
